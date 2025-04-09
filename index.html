@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>区块链物品交易平台</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- 引入 ethers.js 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🌐 区块链物品交易平台</h1>
+    <div class="header-btns">
+      <button id="loginBtn">连接钱包</button>
+      <button id="logoutBtn" class="hidden">退出</button>
+      <span id="walletAddress" class="hidden"></span>
+    </div>
+  </header>
+
+  <main>
+    <!-- 登录提示 -->
+    <section id="loginNotice" class="centered">
+      <p>请先连接 Metamask 钱包以开始使用平台。</p>
+    </section>
+
+    <!-- 商品上传 -->
+    <section id="uploadSection" class="hidden animated">
+      <h2>📤 上传商品</h2>
+      <form id="uploadForm">
+        <input type="text" id="productName" placeholder="商品名称" required />
+        <input type="file" id="productImage" required />
+        <!-- 新增商品描述信息 -->
+        <input type="text" id="productBrand" placeholder="品牌（可选）" />
+        <input type="text" id="productModel" placeholder="型号（可选）" />
+        <input type="text" id="productSerial" placeholder="序列号（可选）" />
+        <textarea id="productDesc" placeholder="商品描述（可选）"></textarea>
+        <button type="submit">上传并上链</button>
+      </form>
+    </section>
+
+    <!-- 市场商品 -->
+    <section id="marketSection" class="hidden animated">
+      <h2>🛒 市场在售商品</h2>
+      <div id="marketList" class="product-grid">加载中...</div>
+    </section>
+
+    <!-- 我的商品 -->
+    <section id="myItemsSection" class="hidden animated">
+      <h2>📦 我的商品</h2>
+      <div id="myItemsList" class="product-grid">加载中...</div>
+    </section>
+
+    <!-- 我的购买记录 -->
+    <section id="myPurchasesSection" class="hidden animated">
+      <h2>🧾 我的购买记录</h2>
+      <div id="myPurchasesList">加载中...</div>
+    </section>
+
+    <!-- 我的出售记录 -->
+    <section id="mySalesSection" class="hidden animated">
+      <h2>💰 我的出售记录</h2>
+      <div id="mySalesList">加载中...</div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
