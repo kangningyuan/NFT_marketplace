@@ -992,7 +992,7 @@ async function handleUpload(e) {
     
     try {
         // IPFS 上传
-        const res = await fetch('/functions/pinata', { 
+        const res = await fetch('/.netlify/functions/pinata', { 
             method: 'POST', 
             body: formData 
         });
