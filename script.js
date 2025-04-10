@@ -1156,15 +1156,15 @@ function setupEventListeners() {
     marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
 }
 
-// 辅助函数
-function updateUI() {
-    walletAddressSpan.textContent = `👛 ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
-    walletAddressSpan.classList.remove('hidden');
-    logoutBtn.classList.remove('hidden');
-    loginBtn.classList.add('hidden');
-    loginNotice.classList.add('hidden');
-    Object.values(sections).forEach(sec => sec.classList.remove('hidden'));
-}
+// // 辅助函数
+// function updateUI() {
+//     walletAddressSpan.textContent = `👛 ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+//     walletAddressSpan.classList.remove('hidden');
+//     logoutBtn.classList.remove('hidden');
+//     loginBtn.classList.add('hidden');
+//     loginNotice.classList.add('hidden');
+//     Object.values(sections).forEach(sec => sec.classList.remove('hidden'));
+// }
 
 function handleLogout() {
     walletAddress = null;
