@@ -849,24 +849,76 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
 });
 
-// 钱包连接
+let isConnecting = false;
+
 async function connectWallet() {
-    if (!window.ethereum) return alert("请安装 MetaMask!");
+  if (isConnecting) return;
+  isConnecting = true;
+  
+  try {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    walletAddress = accounts[0];
     
-    try {
-        const [account] = await ethereum.request({ method: 'eth_requestAccounts' });
-        walletAddress = account;
-        updateUI();
+    // 强制重新初始化合约实例
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    marketplaceContract = new ethers.Contract(contractAddress, contractABI, signer);
+    
+    // 验证合约是否可调用
+    const contractName = await marketplaceContract.name();
+    console.log("合约验证通过:", contractName);
+  } finally {
+    isConnecting = false;
+  }
+}
+
+// // 钱包连接
+// async function connectWallet() {
+//     if (!window.ethereum) return alert("请安装 MetaMask!");
+    
+//     try {
+//         const [account] = await ethereum.request({ method: 'eth_requestAccounts' });
+//         walletAddress = account;
+//         updateUI();
         
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner();
-        marketplaceContract = new ethers.Contract(contractAddress, contractABI, signer);
+//         provider = new ethers.BrowserProvider(window.ethereum);
+//         signer = await provider.getSigner();
+//         marketplaceContract = new ethers.Contract(contractAddress, contractABI, signer);
         
-        await loadData();
-        setupEventListeners();
-    } catch (error) {
-        handleError("钱包连接失败", error);
-    }
+//         await loadData();
+//         setupEventListeners();
+//     } catch (error) {
+//         handleError("钱包连接失败", error);
+//     }
+// }
+
+async function mintProductOnChain(ipfsHash) {
+	try {
+	  // 新增合约实例检查
+	  if (!marketplaceContract) {
+		throw new Error("合约未初始化，请重新连接钱包");
+	  }
+	  
+	  const tx = await marketplaceContract.mintProduct(
+		document.getElementById('productName').value,
+		ipfsHash,
+		document.getElementById('productBrand').value || "",
+		document.getElementById('productModel').value || "",
+		document.getElementById('productSerial').value || "",
+		document.getElementById('productDesc').value || ""
+	  );
+	  
+	  const receipt = await tx.wait();
+	  console.log("交易详情:", receipt);
+	  alert("上链成功！区块高度: " + receipt.blockNumber);
+	} catch (err) {
+	  console.error("完整错误日志:", {
+		error: err,
+		message: err.message,
+		stack: err.stack
+	  });
+	  alert(`上链失败：${err.reason || err.message}`);
+	}
 }
 
 // 数据加载
@@ -985,36 +1037,71 @@ window.handleBuy = async (tokenId, priceWei) => {
     }
 };
 
-// 商品上传
 async function handleUpload(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
+	e.preventDefault();
+	
+	// 1. 验证钱包状态
+	if (!walletAddress) {
+	  return alert("请先连接钱包");
+	}
+  
+	// 2. 验证文件选择
+	const fileInput = document.getElementById('productImage');
+	if (fileInput.files.length === 0) {
+	  return alert("请选择商品图片");
+	}
+	const file = fileInput.files[0];
+	
+	// 3. 分步显示进度
+	const uploadStatus = document.createElement('div');
+	uploadStatus.textContent = "开始上传图片到IPFS...";
+	document.body.appendChild(uploadStatus);
+  
+	try {
+	  // 4. IPFS上传
+	  const ipfsHash = await uploadToIPFS(file);
+	  uploadStatus.textContent = "IPFS上传成功，开始上链...";
+	  
+	  // 5. 区块链交易
+	  await mintProductOnChain(ipfsHash);
+	  
+	  uploadStatus.textContent = "全流程完成！";
+	} catch (error) {
+	  uploadStatus.textContent = `失败：${error.message}`;
+	  console.error("全流程错误:", error);
+	}
+  }
+
+// // 商品上传
+// async function handleUpload(e) {
+//     e.preventDefault();
+//     const formData = new FormData(e.target);
     
-    try {
-        // IPFS 上传
-        const res = await fetch('/.netlify/functions/pinata', { 
-            method: 'POST', 
-            body: formData 
-        });
-        const { ipfsHash } = await res.json();
+//     try {
+//         // IPFS 上传
+//         const res = await fetch('/.netlify/functions/pinata', { 
+//             method: 'POST', 
+//             body: formData 
+//         });
+//         const { ipfsHash } = await res.json();
         
-        // 调用合约
-        const tx = await marketplaceContract.mintProduct(
-            formData.get('productName'),
-            ipfsHash,
-            formData.get('productBrand'),
-            formData.get('productModel'),
-            formData.get('productSerial'),
-            formData.get('productDesc')
-        );
+//         // 调用合约
+//         const tx = await marketplaceContract.mintProduct(
+//             formData.get('productName'),
+//             ipfsHash,
+//             formData.get('productBrand'),
+//             formData.get('productModel'),
+//             formData.get('productSerial'),
+//             formData.get('productDesc')
+//         );
         
-        await tx.wait();
-        alert(`上链成功！TX: ${tx.hash}`);
-        loadData();
-    } catch (error) {
-        handleError("上传失败", error);
-    }
-}
+//         await tx.wait();
+//         alert(`上链成功！TX: ${tx.hash}`);
+//         loadData();
+//     } catch (error) {
+//         handleError("上传失败", error);
+//     }
+// }
 
 // 事件监听
 function setupEventListeners() {
