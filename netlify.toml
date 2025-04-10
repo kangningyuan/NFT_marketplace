@@ -1,10 +1,9 @@
 [build]
-  publish = "."
-  functions = "functions"
+  publish = "."        # 发布目录设为根目录
+  functions = "functions"  # 函数目录
 
-  [[functions]]
-  directory = "functions"
+[functions]
   node_bundler = "esbuild"
   [functions.settings]
-    maxRequestBodySize = 50    # 允许最大50MB文件
-    timeout = 30               # 超时时间30秒
+    maxRequestBodySize = 50  # 单位：MB
+    timeout = 30             # 单位：秒
