@@ -849,28 +849,70 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
 });
 
+
+
 let isConnecting = false;
 
 async function connectWallet() {
   if (isConnecting) return;
   isConnecting = true;
   
+  if (!window.ethereum) {
+    isConnecting = false;
+    return alert("请安装 MetaMask!");
+  }
+
   try {
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    walletAddress = accounts[0];
+    const [account] = await ethereum.request({ method: 'eth_requestAccounts' });
+    walletAddress = account;
     
-    // 强制重新初始化合约实例
+    // 初始化合约相关对象
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
     marketplaceContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    // 验证合约连通性
+    await marketplaceContract.name();
     
-    // 验证合约是否可调用
-    const contractName = await marketplaceContract.name();
-    console.log("合约验证通过:", contractName);
+    // 更新界面状态
+    updateUI();
+    
+    // 加载数据和事件监听
+    await loadData();
+    setupEventListeners();
+
+  } catch (error) {
+    handleError("钱包连接失败", error);
+    // 失败时重置状态
+    walletAddress = null;
+    marketplaceContract = null;
+    updateUI();
   } finally {
     isConnecting = false;
   }
 }
+
+// 界面更新函数
+function updateUI() {
+  if (walletAddress) {
+    walletAddressSpan.textContent = `👛 ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+    walletAddressSpan.classList.remove('hidden');
+    logoutBtn.classList.remove('hidden');
+    loginBtn.classList.add('hidden');
+    loginNotice.classList.add('hidden');
+    Object.values(sections).forEach(sec => sec.classList.remove('hidden'));
+  } else {
+    walletAddressSpan.textContent = '';
+    walletAddressSpan.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    loginBtn.classList.remove('hidden');
+    Object.values(sections).forEach(sec => sec.classList.add('hidden'));
+    loginNotice.classList.remove('hidden');
+  }
+}
+
+
+
 
 // // 钱包连接
 // async function connectWallet() {
@@ -891,6 +933,10 @@ async function connectWallet() {
 //         handleError("钱包连接失败", error);
 //     }
 // }
+
+
+
+
 
 async function mintProductOnChain(ipfsHash) {
 	try {
