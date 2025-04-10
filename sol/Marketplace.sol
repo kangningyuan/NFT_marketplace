@@ -6,10 +6,19 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-contract Marketplace is ERC721, Ownable, ReentrancyGuard {
+contract Marketplace is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds; // 用于生成 tokenId
+
+    // 修改后的构造函数
+    constructor() 
+        ERC721("MarketplaceNFT", "MKNFT") 
+        Ownable(msg.sender)  // 关键修复：传递初始所有者地址
+    {
+        // 初始化代码（若有）
+    }
 
     // 商品信息结构体
     struct Product {
@@ -32,7 +41,6 @@ contract Marketplace is ERC721, Ownable, ReentrancyGuard {
     event ProductDelisted(uint256 indexed tokenId);
     event ProductSold(uint256 indexed tokenId, address buyer, uint256 price);
 
-    constructor() ERC721("MarketplaceNFT", "MKNFT") {}
 
     /**
      * @dev 用户调用该函数上链商品，同时铸造一个新的 NFT。
@@ -117,5 +125,10 @@ contract Marketplace is ERC721, Ownable, ReentrancyGuard {
         }
 
         emit ProductSold(tokenId, msg.sender, price);
+    }
+
+    // 添加totalSupply方法
+    function totalSupply() public view override returns (uint256) {
+        return _tokenIds.current();
     }
 }
