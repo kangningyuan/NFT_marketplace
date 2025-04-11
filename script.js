@@ -946,13 +946,16 @@ function updateUI() {
 // }
 
 
+
+
+
 async function mintProductOnChain(ipfsHash) {
 	try {
-	  // 新增合约实例检查
 	  if (!marketplaceContract) {
 		throw new Error("合约未初始化，请重新连接钱包");
 	  }
-	  
+  
+	  // 使用明确的参数传递
 	  const tx = await marketplaceContract.mintProduct(
 		document.getElementById('productName').value,
 		ipfsHash,
@@ -961,19 +964,48 @@ async function mintProductOnChain(ipfsHash) {
 		document.getElementById('productSerial').value || "",
 		document.getElementById('productDesc').value || ""
 	  );
-	  
+  
 	  const receipt = await tx.wait();
-	  console.log("交易详情:", receipt);
 	  alert("上链成功！区块高度: " + receipt.blockNumber);
+	  return receipt; // 确保返回 Promise
 	} catch (err) {
-	  console.error("完整错误日志:", {
-		error: err,
-		message: err.message,
-		stack: err.stack
-	  });
-	  alert(`上链失败：${err.reason || err.message}`);
+	  console.error("合约调用错误:", err);
+	  throw err; // 抛出错误以便外层捕获
 	}
-}
+  }
+
+
+// async function mintProductOnChain(ipfsHash) {
+// 	try {
+// 	  // 新增合约实例检查
+// 	  if (!marketplaceContract) {
+// 		throw new Error("合约未初始化，请重新连接钱包");
+// 	  }
+	  
+// 	  const tx = await marketplaceContract.mintProduct(
+// 		document.getElementById('productName').value,
+// 		ipfsHash,
+// 		document.getElementById('productBrand').value || "",
+// 		document.getElementById('productModel').value || "",
+// 		document.getElementById('productSerial').value || "",
+// 		document.getElementById('productDesc').value || ""
+// 	  );
+	  
+// 	  const receipt = await tx.wait();
+// 	  console.log("交易详情:", receipt);
+// 	  alert("上链成功！区块高度: " + receipt.blockNumber);
+// 	} catch (err) {
+// 	  console.error("完整错误日志:", {
+// 		error: err,
+// 		message: err.message,
+// 		stack: err.stack
+// 	  });
+// 	  alert(`上链失败：${err.reason || err.message}`);
+// 	}
+// }
+
+
+
 
 // 数据加载
 async function loadData() {
@@ -1093,48 +1125,89 @@ window.handleBuy = async (tokenId, priceWei) => {
 
 
 
-async function handleUpload(e) {
-    e.preventDefault();
-    
-    // 1. 验证钱包状态
-    if (!walletAddress) return alert("请先连接钱包");
-    
-    // 2. 验证文件选择
-    const fileInput = document.getElementById('productImage');
-    if (fileInput.files.length === 0) return alert("请选择商品图片");
-    const file = fileInput.files[0];
-    
-    // 3. 创建 FormData 并填充数据
-    const formData = new FormData();
-    formData.append('productName', document.getElementById('productName').value);
-    formData.append('productBrand', document.getElementById('productBrand').value);
-    formData.append('productModel', document.getElementById('productModel').value);
-    formData.append('productSerial', document.getElementById('productSerial').value);
-    formData.append('productDesc', document.getElementById('productDesc').value);
-    formData.append('productImage', file);
 
-    try {
-        // 4. 调用 Netlify 云函数上传到 IPFS
-        const uploadStatus = document.createElement('div');
-        uploadStatus.textContent = "开始上传图片到IPFS...";
-        document.body.appendChild(uploadStatus);
+
+async function handleUpload(e) {
+	e.preventDefault();
+	if (!walletAddress) return alert("请先连接钱包");
+  
+	const fileInput = document.getElementById('productImage');
+	if (!fileInput.files[0]) return alert("请选择商品图片");
+  
+	const formData = new FormData(e.target); // 直接使用表单的 FormData
+	formData.append('productImage', fileInput.files[0]);
+  
+	try {
+	  const uploadStatus = document.createElement('div');
+	  uploadStatus.textContent = "开始上传图片到IPFS...";
+	  document.body.appendChild(uploadStatus);
+  
+	  // 调用云函数
+	  const res = await fetch('/.netlify/functions/pinata', {
+		method: 'POST',
+		body: formData
+	  });
+  
+	  if (!res.ok) {
+		throw new Error(`上传失败: ${res.statusText}`);
+	  }
+  
+	  const { ipfsHash } = await res.json();
+	  uploadStatus.textContent = "IPFS上传成功，开始上链...";
+  
+	  // 调用合约方法（使用 await）
+	  await mintProductOnChain(ipfsHash);
+	  uploadStatus.textContent = "全流程完成！";
+	  await loadData(); // 刷新数据
+	} catch (error) {
+	  console.error("全流程错误:", error);
+	  alert(`失败: ${error.message}`);
+	}
+  }
+
+
+// async function handleUpload(e) {
+//     e.preventDefault();
+    
+//     // 1. 验证钱包状态
+//     if (!walletAddress) return alert("请先连接钱包");
+    
+//     // 2. 验证文件选择
+//     const fileInput = document.getElementById('productImage');
+//     if (fileInput.files.length === 0) return alert("请选择商品图片");
+//     const file = fileInput.files[0];
+    
+//     // 3. 创建 FormData 并填充数据
+//     const formData = new FormData();
+//     formData.append('productName', document.getElementById('productName').value);
+//     formData.append('productBrand', document.getElementById('productBrand').value);
+//     formData.append('productModel', document.getElementById('productModel').value);
+//     formData.append('productSerial', document.getElementById('productSerial').value);
+//     formData.append('productDesc', document.getElementById('productDesc').value);
+//     formData.append('productImage', file);
+
+//     try {
+//         // 4. 调用 Netlify 云函数上传到 IPFS
+//         const uploadStatus = document.createElement('div');
+//         uploadStatus.textContent = "开始上传图片到IPFS...";
+//         document.body.appendChild(uploadStatus);
         
-        const res = await fetch('/.netlify/functions/pinata', {
-            method: 'POST',
-            body: formData
-        });
-        const { ipfsHash } = await res.json();
-        uploadStatus.textContent = "IPFS上传成功，开始上链...";
+//         const res = await fetch('/.netlify/functions/pinata', {
+//             method: 'POST',
+//             body: formData
+//         });
+//         const { ipfsHash } = await res.json();
+//         uploadStatus.textContent = "IPFS上传成功，开始上链...";
         
-        // 5. 调用合约上链
-        await mintProductOnChain(ipfsHash);
-        uploadStatus.textContent = "全流程完成！";
-        loadData(); // 刷新数据
-    } catch (error) {
-        console.error("全流程错误:", error);
-        alert(`上传失败：${error.message}`);
-    }
-}
+//         // 5. 调用合约上链
+//         await mintProductOnChain(ipfsHash);
+//         uploadStatus.textContent = "全流程完成！";
+//         loadData(); // 刷新数据
+//     } catch (error) {
+//         console.error("全流程错误:", error);
+//         alert(`上传失败：${error.message}`);
+//     }
+// }
 
 
 
