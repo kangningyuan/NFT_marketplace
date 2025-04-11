@@ -935,7 +935,15 @@ function updateUI() {
 // }
 
 
-
+// // 更新界面
+// function updateUI() {
+//     walletAddressSpan.textContent = `👛 ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+//     walletAddressSpan.classList.remove('hidden');
+//     logoutBtn.classList.remove('hidden');
+//     loginBtn.classList.add('hidden');
+//     loginNotice.classList.add('hidden');
+//     Object.values(sections).forEach(sec => sec.classList.remove('hidden'));
+// }
 
 
 async function mintProductOnChain(ipfsHash) {
@@ -1083,40 +1091,52 @@ window.handleBuy = async (tokenId, priceWei) => {
     }
 };
 
+
+
 async function handleUpload(e) {
-	e.preventDefault();
-	
-	// 1. 验证钱包状态
-	if (!walletAddress) {
-	  return alert("请先连接钱包");
-	}
-  
-	// 2. 验证文件选择
-	const fileInput = document.getElementById('productImage');
-	if (fileInput.files.length === 0) {
-	  return alert("请选择商品图片");
-	}
-	const file = fileInput.files[0];
-	
-	// 3. 分步显示进度
-	const uploadStatus = document.createElement('div');
-	uploadStatus.textContent = "开始上传图片到IPFS...";
-	document.body.appendChild(uploadStatus);
-  
-	try {
-	  // 4. IPFS上传
-	  const ipfsHash = await uploadToIPFS(file);
-	  uploadStatus.textContent = "IPFS上传成功，开始上链...";
-	  
-	  // 5. 区块链交易
-	  await mintProductOnChain(ipfsHash);
-	  
-	  uploadStatus.textContent = "全流程完成！";
-	} catch (error) {
-	  uploadStatus.textContent = `失败：${error.message}`;
-	  console.error("全流程错误:", error);
-	}
-  }
+    e.preventDefault();
+    
+    // 1. 验证钱包状态
+    if (!walletAddress) return alert("请先连接钱包");
+    
+    // 2. 验证文件选择
+    const fileInput = document.getElementById('productImage');
+    if (fileInput.files.length === 0) return alert("请选择商品图片");
+    const file = fileInput.files[0];
+    
+    // 3. 创建 FormData 并填充数据
+    const formData = new FormData();
+    formData.append('productName', document.getElementById('productName').value);
+    formData.append('productBrand', document.getElementById('productBrand').value);
+    formData.append('productModel', document.getElementById('productModel').value);
+    formData.append('productSerial', document.getElementById('productSerial').value);
+    formData.append('productDesc', document.getElementById('productDesc').value);
+    formData.append('productImage', file);
+
+    try {
+        // 4. 调用 Netlify 云函数上传到 IPFS
+        const uploadStatus = document.createElement('div');
+        uploadStatus.textContent = "开始上传图片到IPFS...";
+        document.body.appendChild(uploadStatus);
+        
+        const res = await fetch('/.netlify/functions/pinata', {
+            method: 'POST',
+            body: formData
+        });
+        const { ipfsHash } = await res.json();
+        uploadStatus.textContent = "IPFS上传成功，开始上链...";
+        
+        // 5. 调用合约上链
+        await mintProductOnChain(ipfsHash);
+        uploadStatus.textContent = "全流程完成！";
+        loadData(); // 刷新数据
+    } catch (error) {
+        console.error("全流程错误:", error);
+        alert(`上传失败：${error.message}`);
+    }
+}
+
+
 
 // // 商品上传
 // async function handleUpload(e) {
@@ -1149,22 +1169,13 @@ async function handleUpload(e) {
 //     }
 // }
 
+
 // 事件监听
 function setupEventListeners() {
     marketplaceContract.on("ProductListed", (tokenId) => loadMarketItems());
     marketplaceContract.on("ProductSold", (tokenId) => loadData());
     marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
 }
-
-// // 辅助函数
-// function updateUI() {
-//     walletAddressSpan.textContent = `👛 ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
-//     walletAddressSpan.classList.remove('hidden');
-//     logoutBtn.classList.remove('hidden');
-//     loginBtn.classList.add('hidden');
-//     loginNotice.classList.add('hidden');
-//     Object.values(sections).forEach(sec => sec.classList.remove('hidden'));
-// }
 
 function handleLogout() {
     walletAddress = null;
