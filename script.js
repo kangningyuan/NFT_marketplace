@@ -1020,64 +1020,125 @@ async function loadData() {
 async function loadMarketItems() {
     const container = document.getElementById('marketList');
     try {
-        const total = await marketplaceContract.totalSupply();
-        const items = [];
-        
-        for (let tokenId = 1; tokenId <= total; tokenId++) {
-            const price = await marketplaceContract.productPrices(tokenId);
-            if (price > 0) {
-                const product = await marketplaceContract.products(tokenId);
-                items.push({ tokenId, ...product, price });
-            }
+      const total = await marketplaceContract.totalSupply();
+      const items = [];
+      
+      for (let tokenId = 1; tokenId <= total; tokenId++) {
+        const price = await marketplaceContract.productPrices(tokenId);
+        if (price > 0) {
+          // 获取合约中的元数据哈希
+          const product = await marketplaceContract.products(tokenId);
+          
+          // 从 IPFS 加载元数据 JSON
+          const metadataRes = await fetch(`https://ipfs.io/ipfs/${product.metadataUri}`);
+          const metadata = await metadataRes.json();
+          
+          items.push({ 
+            tokenId, 
+            ...metadata,
+            price 
+          });
         }
-        
-        container.innerHTML = items.map(item => `
-            <div class="product-card">
-                <h3>${item.name}</h3>
-                <img src="https://ipfs.io/ipfs/${item.metadataUri}" />
-                <p>品牌: ${item.brand || '无'}</p>
-                <p>型号: ${item.model || '无'}</p>
-                <p>价格: ${ethers.formatEther(item.price)} ETH</p>
-                <button onclick="handleBuy(${item.tokenId}, ${item.price})">购买</button>
-            </div>
-        `).join('') || "<p>暂无商品</p>";
+      }
+      
+      container.innerHTML = items.map(item => `
+        <div class="product-card">
+          <h3>${item.name}</h3>
+          <img src="https://ipfs.io/ipfs/${item.image.split('//')[1]}" />
+          <p>品牌: ${item.brand || '无'}</p>
+          <p>型号: ${item.model || '无'}</p>
+          <p>价格: ${ethers.formatEther(item.price)} ETH</p>
+          <button onclick="handleBuy(${item.tokenId}, ${item.price})">购买</button>
+        </div>
+      `).join('') || "<p>暂无商品</p>";
     } catch (error) {
-        handleError("加载市场商品失败", error, container);
+      handleError("加载市场商品失败", error, container);
     }
 }
 
-// 加载用户商品
+
+
+// script.js - 加载用户商品
 async function loadUserItems() {
     const container = document.getElementById('myItemsList');
     try {
-        const balance = await marketplaceContract.balanceOf(walletAddress);
-        const items = [];
+      const balance = await marketplaceContract.balanceOf(walletAddress);
+      const items = [];
+      
+      for (let i = 0; i < balance; i++) {
+        const tokenId = await marketplaceContract.tokenOfOwnerByIndex(walletAddress, i);
+        const product = await marketplaceContract.products(tokenId);
+        const price = await marketplaceContract.productPrices(tokenId);
         
-        for (let i = 0; i < balance; i++) {
-            const tokenId = await marketplaceContract.tokenOfOwnerByIndex(walletAddress, i);
-            const product = await marketplaceContract.products(tokenId);
-            const price = await marketplaceContract.productPrices(tokenId);
-            items.push({ tokenId, ...product, price });
-        }
+        // 从 IPFS 加载元数据 JSON
+        const metadataRes = await fetch(`https://ipfs.io/ipfs/${product.metadataUri}`);
+        const metadata = await metadataRes.json();
         
-        container.innerHTML = items.map(item => `
-            <div class="product-card">
-                <h3>${item.name}</h3>
-                <img src="https://ipfs.io/ipfs/${item.metadataUri}" />
-                <div class="item-actions">
-                    ${item.price > 0 ? `
-                        <button onclick="handleDelist(${item.tokenId})">下架</button>
-                    ` : `
-                        <input type="number" id="price-${item.tokenId}" placeholder="价格 (ETH)" step="0.01" />
-                        <button onclick="handleList(${item.tokenId})">上架</button>
-                    `}
-                </div>
-            </div>
-        `).join('') || "<p>暂无商品</p>";
+        items.push({ 
+          tokenId, 
+          ...metadata,
+          price 
+        });
+      }
+      
+      container.innerHTML = items.map(item => `
+        <div class="product-card">
+          <h3>${item.name}</h3>
+          <img src="https://ipfs.io/ipfs/${item.image.split('//')[1]}" />
+          <p>品牌: ${item.brand || '无'}</p>
+          <p>型号: ${item.model || '无'}</p>
+          <div class="item-actions">
+            ${item.price > 0 ? `
+              <button onclick="handleDelist(${item.tokenId})">下架</button>
+            ` : `
+              <input type="number" id="price-${item.tokenId}" placeholder="价格 (ETH)" step="0.01" />
+              <button onclick="handleList(${item.tokenId})">上架</button>
+            `}
+          </div>
+        </div>
+      `).join('') || "<p>暂无商品</p>";
     } catch (error) {
-        handleError("加载用户商品失败", error, container);
+      handleError("加载用户商品失败", error, container);
     }
 }
+
+
+
+// // 加载用户商品
+// async function loadUserItems() {
+//     const container = document.getElementById('myItemsList');
+//     try {
+//         const balance = await marketplaceContract.balanceOf(walletAddress);
+//         const items = [];
+        
+//         for (let i = 0; i < balance; i++) {
+//             const tokenId = await marketplaceContract.tokenOfOwnerByIndex(walletAddress, i);
+//             const product = await marketplaceContract.products(tokenId);
+//             const price = await marketplaceContract.productPrices(tokenId);
+//             items.push({ tokenId, ...product, price });
+//         }
+        
+//         container.innerHTML = items.map(item => `
+//             <div class="product-card">
+//                 <h3>${item.name}</h3>
+//                 <img src="https://ipfs.io/ipfs/${item.metadataUri}" />
+//                 <div class="item-actions">
+//                     ${item.price > 0 ? `
+//                         <button onclick="handleDelist(${item.tokenId})">下架</button>
+//                     ` : `
+//                         <input type="number" id="price-${item.tokenId}" placeholder="价格 (ETH)" step="0.01" />
+//                         <button onclick="handleList(${item.tokenId})">上架</button>
+//                     `}
+//                 </div>
+//             </div>
+//         `).join('') || "<p>暂无商品</p>";
+//     } catch (error) {
+//         handleError("加载用户商品失败", error, container);
+//     }
+// }
+
+
+
 
 // 交易历史（示例）
 async function loadTransactionHistory() {
@@ -1125,40 +1186,52 @@ window.handleBuy = async (tokenId, priceWei) => {
 
 
 
+// 上传物品到IPFS并上链
 async function handleUpload(e) {
 	e.preventDefault();
 	if (!walletAddress) return alert("请先连接钱包");
   
-	const formData = new FormData(e.target); // 直接使用表单的 FormData
+	const form = e.target;
+	const formData = new FormData(form);
 	const fileInput = document.getElementById('productImage');
-	formData.append('productImage', fileInput.files[0]); // 确保字段名与云函数一致
+	const file = fileInput.files[0];
   
 	try {
-	  const uploadStatus = document.createElement('div');
-	  uploadStatus.textContent = "开始上传图片到IPFS...";
-	  document.body.appendChild(uploadStatus);
-  
-	  // 调用云函数
-	  const response = await fetch('/.netlify/functions/pinata', {
+	  // 1. 上传图片文件到 IPFS
+	  const imageFormData = new FormData();
+	  imageFormData.append('productImage', file);
+	  const imageRes = await fetch('/.netlify/functions/pinata', {
 		method: 'POST',
-		body: formData, // 不需要手动设置 Content-Type，浏览器会自动处理
+		body: imageFormData,
 	  });
+	  const { ipfsHash: imageHash } = await imageRes.json();
   
-	  if (!response.ok) {
-		const errorData = await response.json();
-		throw new Error(errorData.error || '上传失败');
-	  }
+	  // 2. 构造元数据 JSON
+	  const metadata = {
+		name: formData.get('productName'),
+		image: `ipfs://${imageHash}`,
+		brand: formData.get('productBrand') || '',
+		model: formData.get('productModel') || '',
+		description: formData.get('productDesc') || '',
+	  };
   
-	  const { ipfsHash } = await response.json();
-	  uploadStatus.textContent = "IPFS上传成功，开始上链...";
+	  // 3. 上传元数据 JSON 到 IPFS
+	  const jsonBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+	  const jsonFormData = new FormData();
+	  jsonFormData.append('productImage', jsonBlob, 'metadata.json');
+	  const jsonRes = await fetch('/.netlify/functions/pinata', {
+		method: 'POST',
+		body: jsonFormData,
+	  });
+	  const { ipfsHash: metadataHash } = await jsonRes.json();
   
-	  // 调用合约
-	  await mintProductOnChain(ipfsHash);
-	  uploadStatus.textContent = "全流程完成！";
+	  // 4. 调用合约，存入 metadataHash
+	  await mintProductOnChain(metadataHash);
 	  await loadData();
+	  alert("商品上传成功！");
 	} catch (error) {
 	  console.error("全流程错误:", error);
-	  alert(`失败: ${error.message}`);
+	  alert(`上传失败: ${error.message}`);
 	}
   }
 
@@ -1168,11 +1241,9 @@ async function handleUpload(e) {
 // 	e.preventDefault();
 // 	if (!walletAddress) return alert("请先连接钱包");
   
-// 	const fileInput = document.getElementById('productImage');
-// 	if (!fileInput.files[0]) return alert("请选择商品图片");
-  
 // 	const formData = new FormData(e.target); // 直接使用表单的 FormData
-// 	formData.append('productImage', fileInput.files[0]);
+// 	const fileInput = document.getElementById('productImage');
+// 	formData.append('productImage', fileInput.files[0]); // 确保字段名与云函数一致
   
 // 	try {
 // 	  const uploadStatus = document.createElement('div');
@@ -1180,22 +1251,23 @@ async function handleUpload(e) {
 // 	  document.body.appendChild(uploadStatus);
   
 // 	  // 调用云函数
-// 	  const res = await fetch('/.netlify/functions/pinata', {
+// 	  const response = await fetch('/.netlify/functions/pinata', {
 // 		method: 'POST',
-// 		body: formData
+// 		body: formData, // 不需要手动设置 Content-Type，浏览器会自动处理
 // 	  });
   
-// 	  if (!res.ok) {
-// 		throw new Error(`上传失败: ${res.statusText}`);
+// 	  if (!response.ok) {
+// 		const errorData = await response.json();
+// 		throw new Error(errorData.error || '上传失败');
 // 	  }
   
-// 	  const { ipfsHash } = await res.json();
+// 	  const { ipfsHash } = await response.json();
 // 	  uploadStatus.textContent = "IPFS上传成功，开始上链...";
   
-// 	  // 调用合约方法（使用 await）
+// 	  // 调用合约
 // 	  await mintProductOnChain(ipfsHash);
 // 	  uploadStatus.textContent = "全流程完成！";
-// 	  await loadData(); // 刷新数据
+// 	  await loadData();
 // 	} catch (error) {
 // 	  console.error("全流程错误:", error);
 // 	  alert(`失败: ${error.message}`);
@@ -1203,36 +1275,7 @@ async function handleUpload(e) {
 //   }
 
 
-// // 商品上传
-// async function handleUpload(e) {
-//     e.preventDefault();
-//     const formData = new FormData(e.target);
-    
-//     try {
-//         // IPFS 上传
-//         const res = await fetch('/.netlify/functions/pinata', { 
-//             method: 'POST', 
-//             body: formData 
-//         });
-//         const { ipfsHash } = await res.json();
-        
-//         // 调用合约
-//         const tx = await marketplaceContract.mintProduct(
-//             formData.get('productName'),
-//             ipfsHash,
-//             formData.get('productBrand'),
-//             formData.get('productModel'),
-//             formData.get('productSerial'),
-//             formData.get('productDesc')
-//         );
-        
-//         await tx.wait();
-//         alert(`上链成功！TX: ${tx.hash}`);
-//         loadData();
-//     } catch (error) {
-//         handleError("上传失败", error);
-//     }
-// }
+
 
 
 // 事件监听
