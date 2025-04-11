@@ -116,6 +116,20 @@ form textarea {
   background-color: #1976D2;
 }
 
+/* 交易记录样式 */
+.transaction-item {
+  background: #fff;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.transaction-item p {
+  margin: 0.3rem 0;
+  color: #666;
+}
+
 /* 动画效果 */
 .animated {
   opacity: 0;

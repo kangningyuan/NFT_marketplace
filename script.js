@@ -1058,8 +1058,43 @@ async function loadUserItems() {
 
 // 交易历史（示例）
 async function loadTransactionHistory() {
-    // 需要后端支持或使用 TheGraph 索引事件
-}
+	try {
+	  // 获取购买记录（作为买家）
+	  const purchaseFilter = marketplaceContract.filters.ProductSold(null, walletAddress);
+	  const purchases = await marketplaceContract.queryFilter(purchaseFilter);
+	  
+	  // 获取出售记录（作为卖家）
+	  const salesFilter = marketplaceContract.filters.ProductSold();
+	  const allSales = await marketplaceContract.queryFilter(salesFilter);
+	  const mySales = allSales.filter(event => event.args.seller === walletAddress);
+  
+	  // 渲染购买记录
+	  const purchasesList = document.getElementById('myPurchasesList');
+	  purchasesList.innerHTML = purchases.map(event => `
+		<div class="transaction-item">
+		  <p>商品 ID: ${event.args.tokenId}</p>
+		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
+		  <p>时间: ${new Date(event.blockNumber * 1000).toLocaleString()}</p>
+		</div>
+	  `).join('') || "<p>暂无购买记录</p>";
+  
+	  // 渲染出售记录
+	  const salesList = document.getElementById('mySalesList');
+	  salesList.innerHTML = mySales.map(event => `
+		<div class="transaction-item">
+		  <p>商品 ID: ${event.args.tokenId}</p>
+		  <p>买家: ${event.args.buyer}</p>
+		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
+		  <p>时间: ${new Date(event.blockNumber * 1000).toLocaleString()}</p>
+		</div>
+	  `).join('') || "<p>暂无出售记录</p>";
+	  
+	} catch (error) {
+	  handleError("加载交易记录失败", error);
+	}
+  }
+
+
 
 // 商品上架
 window.handleList = async (tokenId) => {
@@ -1152,12 +1187,30 @@ async function handleUpload(e) {
 }
 
 
+
+
+
 // 事件监听
 function setupEventListeners() {
-    marketplaceContract.on("ProductListed", (tokenId) => loadMarketItems());
-    marketplaceContract.on("ProductSold", (tokenId) => loadData());
-    marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
-}
+	// 当有商品售出时，刷新交易记录
+	marketplaceContract.on("ProductSold", () => {
+	  loadTransactionHistory();
+	  loadMarketItems();
+	  loadUserItems();
+	});
+	
+	// 其他事件监听保持不变
+	marketplaceContract.on("ProductListed", (tokenId) => loadMarketItems());
+	marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
+  }
+
+// function setupEventListeners() {
+//     marketplaceContract.on("ProductListed", (tokenId) => loadMarketItems());
+//     marketplaceContract.on("ProductSold", (tokenId) => loadData());
+//     marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
+// }
+
+
 
 function handleLogout() {
     walletAddress = null;
