@@ -10,6 +10,20 @@ https://nftmarket-kangning.netlify.app/
 - Install [MetaMask](https://metamask.io/) browser extension first  
 - Ensure your wallet is connected to Sepolia Test Network
 
+## File Structure
+```
+NFT_marketplace/
+├── index.html           // Main entry page with login, product display, upload, delisting, purchase, and order management interfaces
+├── style.css            // Styling definitions for web pages
+├── script.js            // Frontend logic handling Metamask integration and product display
+├── functions/           // Netlify serverless functions directory (for sensitive operations like Pinata interactions)
+│   └── pinata.js        // Serverless function example for handling file uploads to Pinata
+└── sol/                 // Smart contract source code
+│   └── Marketplace.sol(.txt)  // Main smart contract implementation
+├── netlify.toml         // Netlify deployment configuration file
+├── package.json         // Netfily package dependencies
+```
+
 ## 🌟 Key Features
 
 - **Wallet Integration**  
@@ -23,6 +37,9 @@ https://nftmarket-kangning.netlify.app/
   🔗 Etherscan transaction link verification
 - **Decentralized Storage**  
   🌐 Store product images/metadata on IPFS via Pinata gateway
+
+
+
 
 ## 🛠 Technology Stack
 
