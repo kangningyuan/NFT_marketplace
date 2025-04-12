@@ -869,7 +869,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
 	toggleUploadBtn.addEventListener('click', () => {
 		uploadFormContainer.classList.toggle('hidden');
+		// 确保每次显示上传表单时，加载动画都是隐藏的
+		loadingIndicator.classList.add('hidden');
 	  });
+	  
 });
 
 
@@ -1310,7 +1313,7 @@ async function handleUpload(e) {
 	  // 显示上传动画
 	  submitBtn.disabled = true;
 	  loadingIndicator.classList.remove('hidden');
-	  
+
 	  // 1. 上传图片文件到 IPFS
 	  const imageFormData = new FormData();
 	  imageFormData.append('productImage', file);
