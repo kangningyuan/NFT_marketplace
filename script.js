@@ -991,7 +991,7 @@ async function loadMarketItems() {
 		  <p>品牌: ${item.brand}</p>
 		  <p>型号: ${item.model}</p>
 		  <p>价格: ${ethers.formatEther(item.price)} ETH</p>
-		  <button onclick="handleBuy(${item.tokenId}, ${item.price})">购买</button>
+		  <button onclick="handleBuy(${item.tokenId}, '${item.price}')">购买</button>
 		</div>
 	  `).join('') || "<p>暂无商品</p>";
 	} catch (error) {
@@ -1126,11 +1126,11 @@ window.handleDelist = async (tokenId) => {
 
 
 
-// 商品购买
+// 购买商品：
 window.handleBuy = async (tokenId, priceWei) => {
 	try {
 	  const tx = await marketplaceContract.buyProduct(tokenId, {
-		value: ethers.BigNumber.from(priceWei) // 显式转换为 BigNumber
+		value: priceWei // 直接传递字符串（ethers.js v6支持）
 	  });
 	  await tx.wait();
 	  alert(`购买成功！TX: ${tx.hash}`);
@@ -1138,8 +1138,7 @@ window.handleBuy = async (tokenId, priceWei) => {
 	} catch (error) {
 	  handleError("购买失败", error);
 	}
-};
-
+  };
 
 
 // window.handleBuy = async (tokenId, priceWei) => {
