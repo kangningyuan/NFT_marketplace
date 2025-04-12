@@ -40,11 +40,12 @@
       <!-- 上传表单 -->
       <div id="uploadFormContainer" class="hidden">
         <form id="uploadForm">
-          <input type="text" id="productName" placeholder="商品名称" required />
-          <input type="file" id="productImage" required />
-          <input type="text" id="productBrand" placeholder="品牌（可选）" />
-          <input type="text" id="productModel" placeholder="型号（可选）" />
-          <textarea id="productDesc" placeholder="商品描述（可选）"></textarea>
+          <input type="text" id="productName" name="productName" placeholder="商品名称" required />
+          <input type="file" id="productImage" name="productImage" required />
+          <input type="text" id="productBrand" name="productBrand" placeholder="品牌（可选）" />
+          <input type="text" id="productModel" name="productModel" placeholder="型号（可选）" />
+          <input type="text" id="productSerial" name="productSerial" placeholder="序列号（可选）" />
+          <textarea id="productDesc" name="productDesc" placeholder="商品描述（可选）"></textarea>
           <div class="form-actions">
             <button type="submit" id="submitBtn">确认上传</button>
           </div>
