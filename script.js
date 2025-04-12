@@ -976,7 +976,7 @@ async function loadMarketItems() {
 			  image: imageHash,
 			  brand: metadata.brand || "无品牌",
 			  model: metadata.model || "无型号",
-			  price 
+			  price: price.toString()
 			});
 		  }
 		} catch (error) {
@@ -1028,7 +1028,7 @@ async function loadUserItems() {
 			image: imageHash,
 			brand: metadata.brand || "无品牌",
 			model: metadata.model || "无型号",
-			price 
+			price: price.toString()
 		  });
 		} catch (error) {
 		  console.error(`商品加载失败:`, error);
@@ -1124,17 +1124,34 @@ window.handleDelist = async (tokenId) => {
     }
 };
 
+
+
 // 商品购买
 window.handleBuy = async (tokenId, priceWei) => {
-    try {
-        const tx = await marketplaceContract.buyProduct(tokenId, { value: priceWei });
-        await tx.wait();
-        alert(`购买成功！TX: ${tx.hash}`);
-        loadData();
-    } catch (error) {
-        handleError("购买失败", error);
-    }
+	try {
+	  const tx = await marketplaceContract.buyProduct(tokenId, {
+		value: ethers.BigNumber.from(priceWei) // 显式转换为 BigNumber
+	  });
+	  await tx.wait();
+	  alert(`购买成功！TX: ${tx.hash}`);
+	  loadData();
+	} catch (error) {
+	  handleError("购买失败", error);
+	}
 };
+
+
+
+// window.handleBuy = async (tokenId, priceWei) => {
+//     try {
+//         const tx = await marketplaceContract.buyProduct(tokenId, { value: priceWei });
+//         await tx.wait();
+//         alert(`购买成功！TX: ${tx.hash}`);
+//         loadData();
+//     } catch (error) {
+//         handleError("购买失败", error);
+//     }
+// };
 
 
 
