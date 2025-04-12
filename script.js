@@ -1307,6 +1307,10 @@ async function handleUpload(e) {
 	const file = fileInput.files[0];
   
 	try {
+	  // 显示上传动画
+	  submitBtn.disabled = true;
+	  loadingIndicator.classList.remove('hidden');
+	  
 	  // 1. 上传图片文件到 IPFS
 	  const imageFormData = new FormData();
 	  imageFormData.append('productImage', file);
@@ -1335,9 +1339,6 @@ async function handleUpload(e) {
 	  });
 	  const { ipfsHash: metadataHash } = await jsonRes.json();
   
-	  // 显示上传动画
-	  submitBtn.disabled = true;
-	  loadingIndicator.classList.remove('hidden');
 	  // 4. 调用合约，存入 metadataHash
 	  await mintProductOnChain(metadataHash);
 	  await loadData();
