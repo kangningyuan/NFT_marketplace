@@ -842,19 +842,34 @@ const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const walletAddressSpan = document.getElementById('walletAddress');
 const loginNotice = document.getElementById('loginNotice');
+// 修改sections配置
 const sections = {
-    upload: document.getElementById('uploadSection'),
-    market: document.getElementById('marketSection'),
-    myItems: document.getElementById('myItemsSection'),
-    myPurchases: document.getElementById('myPurchasesSection'),
-    mySales: document.getElementById('mySalesSection')
+	market: document.getElementById('marketSection'),
+	myItems: document.getElementById('myItemsSection'),
+	myPurchases: document.getElementById('myPurchasesSection')
 };
+// const sections = {
+//     upload: document.getElementById('uploadSection'),
+//     market: document.getElementById('marketSection'),
+//     myItems: document.getElementById('myItemsSection'),
+//     myPurchases: document.getElementById('myPurchasesSection'),
+//     mySales: document.getElementById('mySalesSection')
+// };
+
+// 新增DOM元素
+const toggleUploadBtn = document.getElementById('toggleUploadBtn');
+const uploadFormContainer = document.getElementById('uploadFormContainer');
+const submitBtn = document.getElementById('submitBtn');
+const loadingIndicator = document.querySelector('.loading-indicator');
 
 // 初始化事件监听
 document.addEventListener("DOMContentLoaded", () => {
     loginBtn.addEventListener('click', connectWallet);
     logoutBtn.addEventListener('click', handleLogout);
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+	toggleUploadBtn.addEventListener('click', () => {
+		uploadFormContainer.classList.toggle('hidden');
+	  });
 });
 
 
@@ -1073,9 +1088,9 @@ async function loadTransactionHistory() {
 	  const purchaseFilter = marketplaceContract.filters.ProductSold(null, null, walletAddress);
 	  const purchases = await marketplaceContract.queryFilter(purchaseFilter);
   
-	  // 获取出售记录（作为卖家）
-	  const salesFilter = marketplaceContract.filters.ProductSold(walletAddress);
-	  const sales = await marketplaceContract.queryFilter(salesFilter);
+	//   // 获取出售记录（作为卖家）
+	//   const salesFilter = marketplaceContract.filters.ProductSold(walletAddress);
+	//   const sales = await marketplaceContract.queryFilter(salesFilter);
   
 	  // 加载事件详细信息
 	  const loadEventDetails = async (events) => {
@@ -1115,23 +1130,23 @@ async function loadTransactionHistory() {
 		</div>
 	  `).join('') || "<p>暂无购买记录</p>";
   
-	  // 处理出售记录
-	  const salesWithDetails = (await loadEventDetails(sales)).sort(sortByTimestamp);
-	  const salesList = document.getElementById('mySalesList');
-	  salesList.innerHTML = salesWithDetails.map(event => `
-		<div class="transaction-item">
-		  <p>商品名称: ${event.productName}</p>
-		  <p>NFT ID: ${event.args.tokenId}</p>
-		  <p>买家: ${event.args.buyer}</p>
-		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
-		  <p>时间: ${new Date(event.timestamp).toLocaleString()}</p>
-		  <p>交易哈希: 
-			<a href="https://sepolia.etherscan.io/tx/${event.txHash}" target="_blank">
-			  ${event.txHash.slice(0,6)}...${event.txHash.slice(-4)}
-			</a>
-		  </p>
-		</div>
-	  `).join('') || "<p>暂无出售记录</p>";
+	//   // 处理出售记录
+	//   const salesWithDetails = (await loadEventDetails(sales)).sort(sortByTimestamp);
+	//   const salesList = document.getElementById('mySalesList');
+	//   salesList.innerHTML = salesWithDetails.map(event => `
+	// 	<div class="transaction-item">
+	// 	  <p>商品名称: ${event.productName}</p>
+	// 	  <p>NFT ID: ${event.args.tokenId}</p>
+	// 	  <p>买家: ${event.args.buyer}</p>
+	// 	  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
+	// 	  <p>时间: ${new Date(event.timestamp).toLocaleString()}</p>
+	// 	  <p>交易哈希: 
+	// 		<a href="https://sepolia.etherscan.io/tx/${event.txHash}" target="_blank">
+	// 		  ${event.txHash.slice(0,6)}...${event.txHash.slice(-4)}
+	// 		</a>
+	// 	  </p>
+	// 	</div>
+	//   `).join('') || "<p>暂无出售记录</p>";
 	  
 	} catch (error) {
 	  handleError("加载交易记录失败", error);
@@ -1285,6 +1300,10 @@ window.handleBuy = async (tokenId, priceWei) => {
 async function handleUpload(e) {
 	e.preventDefault();
 	if (!walletAddress) return alert("请先连接钱包");
+
+	// 新增：显示加载状态
+	submitBtn.disabled = true;
+	loadingIndicator.classList.remove('hidden');
   
 	const form = e.target;
 	const formData = new FormData(form);
@@ -1324,37 +1343,34 @@ async function handleUpload(e) {
 	  await mintProductOnChain(metadataHash);
 	  await loadData();
 	  alert("商品上传成功！");
+
+	  // 上传成功后新增：
+	  e.target.reset(); // 重置表单
+	  uploadFormContainer.classList.add('hidden'); // 隐藏表单
 	} catch (error) {
 	  console.error("全流程错误:", error);
 	  alert(`上传失败: ${error.message}`);
+	} finally {
+	  // 新增：始终重置加载状态
+	  submitBtn.disabled = false;
+	  loadingIndicator.classList.add('hidden');
 	}
+
 }
 
 
 
-
-
-// 事件监听
+// 事件监听：
 function setupEventListeners() {
-	// 当有商品售出时，刷新交易记录
 	marketplaceContract.on("ProductSold", () => {
-	  loadTransactionHistory();
+	  loadTransactionHistory(); // 只保留购买记录刷新
 	  loadMarketItems();
 	  loadUserItems();
 	});
 	
-	// 其他事件监听保持不变
 	marketplaceContract.on("ProductListed", (tokenId) => loadMarketItems());
 	marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
-  }
-
-// function setupEventListeners() {
-//     marketplaceContract.on("ProductListed", (tokenId) => loadMarketItems());
-//     marketplaceContract.on("ProductSold", (tokenId) => loadData());
-//     marketplaceContract.on("ProductDelisted", (tokenId) => loadMarketItems());
-// }
-
-
+}
 
 function handleLogout() {
     walletAddress = null;

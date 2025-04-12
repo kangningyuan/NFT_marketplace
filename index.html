@@ -7,7 +7,6 @@
   <!-- 引入 ethers.js 库 -->
   <!-- 改为明确指定 ES 模块版本 -->
   <script type="module" src="https://cdn.jsdelivr.net/npm/ethers@6.12.0/+esm"></script>
-
 </head>
 <body>
   <header>
@@ -25,29 +24,37 @@
       <p>请先连接 Metamask 钱包以开始使用平台。</p>
     </section>
 
-    <!-- 商品上传 -->
-    <section id="uploadSection" class="hidden animated">
-      <h2>📤 上传商品</h2>
-      <form id="uploadForm">
-        <input type="text" id="productName" name="productName" placeholder="商品名称" required />
-        <input type="file" id="productImage" name="productImage" required />
-        <input type="text" id="productBrand" name="productBrand" placeholder="品牌（可选）" />
-        <input type="text" id="productModel" name="productModel" placeholder="型号（可选）" />
-        <input type="text" id="productSerial" name="productSerial" placeholder="序列号（可选）" />
-        <textarea id="productDesc" name="productDesc" placeholder="商品描述（可选）"></textarea>
-        <button type="submit">上传并上链</button>
-      </form>
-    </section>
-
     <!-- 市场商品 -->
     <section id="marketSection" class="hidden animated">
       <h2>🛒 市场在售商品</h2>
       <div id="marketList" class="product-grid">加载中...</div>
     </section>
 
-    <!-- 我的商品 -->
+    <!-- 我的商品（包含上传按钮） -->
     <section id="myItemsSection" class="hidden animated">
-      <h2>📦 我的商品</h2>
+      <div class="section-header">
+        <h2>📦 我的商品</h2>
+        <button id="toggleUploadBtn" class="upload-btn">➕ 上传商品</button>
+      </div>
+
+      <!-- 上传表单 -->
+      <div id="uploadFormContainer" class="hidden">
+        <form id="uploadForm">
+          <input type="text" id="productName" placeholder="商品名称" required />
+          <input type="file" id="productImage" required />
+          <input type="text" id="productBrand" placeholder="品牌（可选）" />
+          <input type="text" id="productModel" placeholder="型号（可选）" />
+          <textarea id="productDesc" placeholder="商品描述（可选）"></textarea>
+          <div class="form-actions">
+            <button type="submit" id="submitBtn">确认上传</button>
+            <div class="loading-indicator hidden">
+              <div class="spinner"></div>
+              <span>正在上传至IPFS并上链...</span>
+            </div>
+          </div>
+        </form>
+      </div>
+
       <div id="myItemsList" class="product-grid">加载中...</div>
     </section>
 
@@ -55,12 +62,6 @@
     <section id="myPurchasesSection" class="hidden animated">
       <h2>🧾 我的购买记录</h2>
       <div id="myPurchasesList">加载中...</div>
-    </section>
-
-    <!-- 我的出售记录 -->
-    <section id="mySalesSection" class="hidden animated">
-      <h2>💰 我的出售记录</h2>
-      <div id="mySalesList">加载中...</div>
     </section>
   </main>
 
