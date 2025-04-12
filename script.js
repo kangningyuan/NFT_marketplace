@@ -1300,15 +1300,22 @@ window.handleBuy = async (tokenId, priceWei) => {
 async function handleUpload(e) {
 	e.preventDefault();
 	if (!walletAddress) return alert("请先连接钱包");
-
-	// 新增：显示加载状态
-	submitBtn.disabled = true;
-	loadingIndicator.classList.remove('hidden');
   
 	const form = e.target;
 	const formData = new FormData(form);
 	const fileInput = document.getElementById('productImage');
 	const file = fileInput.files[0];
+
+	// ============ 新增验证逻辑 ============
+    // 验证必填字段
+    if (!formData.get('productName') || !file) {
+      return alert("请填写商品名称并上传图片");
+    }
+
+  	// ============ 动画控制位置修改 ============
+  	// 仅在验证通过后显示加载状态
+  	submitBtn.disabled = true;
+  	loadingIndicator.classList.remove('hidden');
   
 	try {
 	  // 1. 上传图片文件到 IPFS
@@ -1342,16 +1349,17 @@ async function handleUpload(e) {
 	  // 4. 调用合约，存入 metadataHash
 	  await mintProductOnChain(metadataHash);
 	  await loadData();
+	  
+	  // 上传成功后重置表单
+	  form.reset();
+      uploadFormContainer.classList.add('hidden');
 	  alert("商品上传成功！");
 
-	  // 上传成功后新增：
-	  e.target.reset(); // 重置表单
-	  uploadFormContainer.classList.add('hidden'); // 隐藏表单
 	} catch (error) {
 	  console.error("全流程错误:", error);
 	  alert(`上传失败: ${error.message}`);
 	} finally {
-	  // 新增：始终重置加载状态
+	  // 始终重置加载状态
 	  submitBtn.disabled = false;
 	  loadingIndicator.classList.add('hidden');
 	}
