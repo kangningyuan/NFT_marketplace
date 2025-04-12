@@ -860,7 +860,6 @@ const sections = {
 const toggleUploadBtn = document.getElementById('toggleUploadBtn');
 const uploadFormContainer = document.getElementById('uploadFormContainer');
 const submitBtn = document.getElementById('submitBtn');
-const loadingIndicator = document.querySelector('.loading-indicator');
 
 // 初始化事件监听
 document.addEventListener("DOMContentLoaded", () => {
@@ -869,8 +868,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
 	toggleUploadBtn.addEventListener('click', () => {
 		uploadFormContainer.classList.toggle('hidden');
-		// 确保每次显示上传表单时，加载动画都是隐藏的
-		loadingIndicator.classList.add('hidden');
 	  });
 });
 
@@ -1210,13 +1207,9 @@ async function handleUpload(e) {
 	const formData = new FormData(form);
 	const fileInput = document.getElementById('productImage');
 	const file = fileInput.files[0];
-	const loadingIndicator = document.querySelector('.loading-indicator'); // 确保正确获取元素
   
 	try {
-	  // 显示上传动画
-	  loadingIndicator.classList.remove('hidden');
-	  document.getElementById('submitBtn').disabled = true;
-
+	  submitBtn.disabled = true; // 可保留按钮禁用状态
 	  // 1. 上传图片文件到 IPFS
 	  const imageFormData = new FormData();
 	  imageFormData.append('productImage', file);
@@ -1258,9 +1251,7 @@ async function handleUpload(e) {
 	  console.error("全流程错误:", error);
 	  alert(`上传失败: ${error.message}`);
 	} finally {
-	  // 无论成功失败都隐藏动画
-	  loadingIndicator.classList.add('hidden');
-	  document.getElementById('submitBtn').disabled = false;
+	  submitBtn.disabled = false;
 	}
 
 }
