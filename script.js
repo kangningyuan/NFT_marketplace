@@ -872,7 +872,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		// 确保每次显示上传表单时，加载动画都是隐藏的
 		loadingIndicator.classList.add('hidden');
 	  });
-	  
 });
 
 
@@ -1157,90 +1156,6 @@ async function loadTransactionHistory() {
   }
 
 
-// // 交易历史
-// async function loadTransactionHistory() {
-// 	try {
-// 	  // 获取购买记录（作为买家）
-// 	  const purchaseFilter = marketplaceContract.filters.ProductSold(null, walletAddress);
-// 	  const purchases = await marketplaceContract.queryFilter(purchaseFilter);
-	  
-// 	  // 获取出售记录（作为卖家）
-// 	  const salesFilter = marketplaceContract.filters.ProductSold();
-// 	  const allSales = await marketplaceContract.queryFilter(salesFilter);
-// 	  const mySales = allSales.filter(event => event.args.seller === walletAddress);
-  
-// 	  // 加载区块时间戳、商品名称和卖家地址
-// 	  const loadEventDetails = async (events) => {
-// 		return Promise.all(
-// 		  events.map(async (event) => {
-// 			try {
-// 			  // 获取区块时间戳
-// 			  const block = await provider.getBlock(event.blockNumber);
-			  
-// 			  // 获取商品名称
-// 			  const product = await marketplaceContract.products(event.args.tokenId);
-			  
-// 			  // 获取卖家地址（查询交易发生前的所有者）
-// 			  let seller;
-// 			  try {
-// 				seller = await marketplaceContract.ownerOf(event.args.tokenId, {
-// 				  blockTag: event.blockNumber - 1 // 查询前一个区块的状态
-// 				});
-// 			  } catch (error) {
-// 				console.error("获取卖家地址失败:", error);
-// 				seller = "未知卖家";
-// 			  }
-  
-// 			  return {
-// 				...event,
-// 				timestamp: block.timestamp * 1000,
-// 				productName: product.name || "未命名商品",
-// 				seller: seller
-// 			  };
-// 			} catch (error) {
-// 			  console.error("加载商品信息失败:", error);
-// 			  return { 
-// 				...event, 
-// 				productName: "名称未知",
-// 				seller: "未知卖家"
-// 			  };
-// 			}
-// 		  })
-// 		);
-// 	  };
-  
-// 	  // 渲染购买记录（含商品名称和卖家）
-// 	  const purchasesWithDetails = await loadEventDetails(purchases);
-// 	  const purchasesList = document.getElementById('myPurchasesList');
-// 	  purchasesList.innerHTML = purchasesWithDetails.map(event => `
-// 		<div class="transaction-item">
-// 		  <p>商品名称: ${event.productName}</p>
-// 		  <p>NFT ID: ${event.args.tokenId}</p>
-// 		  <p>卖家: ${event.seller}</p>
-// 		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
-// 		  <p>时间: ${new Date(event.timestamp).toLocaleString()}</p>
-// 		</div>
-// 	  `).join('') || "<p>暂无购买记录</p>";
-  
-// 	  // 渲染出售记录（含买家地址）
-// 	  const salesWithDetails = await loadEventDetails(mySales);
-// 	  const salesList = document.getElementById('mySalesList');
-// 	  salesList.innerHTML = salesWithDetails.map(event => `
-// 		<div class="transaction-item">
-// 		  <p>商品名称: ${event.productName}</p>
-// 		  <p>NFT ID: ${event.args.tokenId}</p>
-// 		  <p>买家: ${event.args.buyer}</p>
-// 		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
-// 		  <p>时间: ${new Date(event.timestamp).toLocaleString()}</p>
-// 		</div>
-// 	  `).join('') || "<p>暂无出售记录</p>";
-	  
-// 	} catch (error) {
-// 	  handleError("加载交易记录失败", error);
-// 	}
-//   }
-
-
 
 // 商品上架
 window.handleList = async (tokenId) => {
@@ -1286,19 +1201,6 @@ window.handleBuy = async (tokenId, priceWei) => {
   };
 
 
-// window.handleBuy = async (tokenId, priceWei) => {
-//     try {
-//         const tx = await marketplaceContract.buyProduct(tokenId, { value: priceWei });
-//         await tx.wait();
-//         alert(`购买成功！TX: ${tx.hash}`);
-//         loadData();
-//     } catch (error) {
-//         handleError("购买失败", error);
-//     }
-// };
-
-
-
 // 上传物品到IPFS并上链
 async function handleUpload(e) {
 	e.preventDefault();
@@ -1308,11 +1210,12 @@ async function handleUpload(e) {
 	const formData = new FormData(form);
 	const fileInput = document.getElementById('productImage');
 	const file = fileInput.files[0];
+	const loadingIndicator = document.querySelector('.loading-indicator'); // 确保正确获取元素
   
 	try {
 	  // 显示上传动画
-	  submitBtn.disabled = true;
 	  loadingIndicator.classList.remove('hidden');
+	  document.getElementById('submitBtn').disabled = true;
 
 	  // 1. 上传图片文件到 IPFS
 	  const imageFormData = new FormData();
@@ -1355,9 +1258,9 @@ async function handleUpload(e) {
 	  console.error("全流程错误:", error);
 	  alert(`上传失败: ${error.message}`);
 	} finally {
-	  // 始终重置加载状态
-	  submitBtn.disabled = false;
+	  // 无论成功失败都隐藏动画
 	  loadingIndicator.classList.add('hidden');
+	  document.getElementById('submitBtn').disabled = false;
 	}
 
 }
