@@ -842,20 +842,12 @@ const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const walletAddressSpan = document.getElementById('walletAddress');
 const loginNotice = document.getElementById('loginNotice');
-// 修改sections配置
+// 定义section元素
 const sections = {
 	market: document.getElementById('marketSection'),
 	myItems: document.getElementById('myItemsSection'),
 	myPurchases: document.getElementById('myPurchasesSection')
 };
-// const sections = {
-//     upload: document.getElementById('uploadSection'),
-//     market: document.getElementById('marketSection'),
-//     myItems: document.getElementById('myItemsSection'),
-//     myPurchases: document.getElementById('myPurchasesSection'),
-//     mySales: document.getElementById('mySalesSection')
-// };
-
 // 新增DOM元素
 const toggleUploadBtn = document.getElementById('toggleUploadBtn');
 const uploadFormContainer = document.getElementById('uploadFormContainer');
@@ -934,8 +926,6 @@ function updateUI() {
 }
 
 
-
-
 // 物品上链
 async function mintProductOnChain(ipfsHash) {
 	try {
@@ -961,61 +951,6 @@ async function mintProductOnChain(ipfsHash) {
 	  throw err; // 抛出错误以便外层捕获
 	}
 }
-
-
-// async function mintProductOnChain(ipfsHash) {
-// 	if (!marketplaceContract) {
-// 		throw new Error("合约未连接，请重新登录钱包");
-// 	  }
-
-// 	try {
-// 	  // 确保表单容器可见（解决上传表单可能被隐藏的问题）
-// 	  const uploadFormContainer = document.getElementById('uploadFormContainer');
-// 	  if (uploadFormContainer.classList.contains('hidden')) {
-// 		uploadFormContainer.classList.remove('hidden');
-// 	  }
-  
-// 	  // 安全获取表单元素
-// 	  const getValue = (id) => {
-// 		const element = document.getElementById(id);
-// 		if (!element) throw new Error(`找不到ID为 ${id} 的表单元素`);
-// 		return element.value || ""; // 确保空值处理
-// 	  };
-  
-// 	  // 显式获取所有表单值
-// 	  const formValues = {
-// 		name: getValue('productName'),
-// 		brand: getValue('productBrand'),
-// 		model: getValue('productModel'),
-// 		serial: getValue('productSerial'),
-// 		desc: getValue('productDesc')
-// 	  };
-  
-// 	  // 添加必要字段验证
-// 	  if (!formValues.name) throw new Error("商品名称不能为空");
-// 	  if (!ipfsHash) throw new Error("IPFS哈希缺失");
-  
-// 	  // 调用合约
-// 	  const tx = await marketplaceContract.mintProduct(
-// 		formValues.name,
-// 		ipfsHash,
-// 		formValues.brand,
-// 		formValues.model,
-// 		formValues.serial,
-// 		formValues.desc
-// 	  );
-  
-// 	  const receipt = await tx.wait();
-// 	  alert("上链成功！区块高度: " + receipt.blockNumber);
-// 	  return receipt; // 确保返回 Promise
-// 	} catch (err) {
-// 	  console.error("合约调用错误详情:", err);
-// 	  throw err; 
-// 	}
-// }
-
-
-
 
 // 数据加载
 async function loadData() {
@@ -1132,8 +1067,6 @@ async function loadUserItems() {
 	  handleError("加载用户商品失败", error, container);
 	}
 }
-
-
 
 
 // 交易历史，新增交易记录链接、按时间排序
