@@ -1305,17 +1305,6 @@ async function handleUpload(e) {
 	const formData = new FormData(form);
 	const fileInput = document.getElementById('productImage');
 	const file = fileInput.files[0];
-
-	// ============ 新增验证逻辑 ============
-    // 验证必填字段
-    if (!formData.get('productName') || !file) {
-      return alert("请填写商品名称并上传图片");
-    }
-
-  	// ============ 动画控制位置修改 ============
-  	// 仅在验证通过后显示加载状态
-  	submitBtn.disabled = true;
-  	loadingIndicator.classList.remove('hidden');
   
 	try {
 	  // 1. 上传图片文件到 IPFS
@@ -1346,6 +1335,9 @@ async function handleUpload(e) {
 	  });
 	  const { ipfsHash: metadataHash } = await jsonRes.json();
   
+	  // 显示上传动画
+	  submitBtn.disabled = true;
+	  loadingIndicator.classList.remove('hidden');
 	  // 4. 调用合约，存入 metadataHash
 	  await mintProductOnChain(metadataHash);
 	  await loadData();
@@ -1353,7 +1345,7 @@ async function handleUpload(e) {
 	  // 上传成功后重置表单
 	  form.reset();
       uploadFormContainer.classList.add('hidden');
-	  alert("商品上传成功！");
+	  alert("商品上架成功！");
 
 	} catch (error) {
 	  console.error("全流程错误:", error);
