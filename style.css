@@ -1,18 +1,23 @@
-/* 基础样式 */
+/* ====================== 基础样式 ====================== */
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f5f7fa;
   margin: 0;
   padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f7fa;
 }
 
+/* ====================== 头部区域 ====================== */
 header {
-  background-color: #222;
-  color: white;
-  padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem;
+  background-color: #222;
+  color: white;
+}
+
+header h1 {
+  margin: 0;
 }
 
 .header-btns {
@@ -20,17 +25,15 @@ header {
   align-items: center;
 }
 
-header h1 {
-  margin: 0;
-}
-
 header button {
-  background-color: #4caf50;
-  color: white;
+  margin-left: 0.5em;
   padding: 0.6em 1.2em;
   border: none;
+  border-radius: 4px;
+  background-color: #4caf50;
+  color: white;
   cursor: pointer;
-  margin-left: 0.5em;
+  transition: background-color 0.3s;
 }
 
 header button:hover {
@@ -42,85 +45,85 @@ header #walletAddress {
   font-weight: bold;
 }
 
+/* ====================== 主要内容区域 ====================== */
 main {
   padding: 2rem;
 }
 
-/* 各个区块样式 */
+/* ====================== 通用区块样式 ====================== */
 section {
   margin-bottom: 2rem;
-  background: white;
   padding: 1rem;
+  background: white;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 居中提示 */
 .centered {
   text-align: center;
   font-size: 1.2rem;
   color: #777;
 }
 
-/* 隐藏元素 */
 .hidden {
   display: none;
 }
 
-/* 产品网格布局 */
+/* ====================== 商品网格布局 ====================== */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
-/* 表单控件样式 */
-form input[type="text"],
-form input[type="file"],
-form textarea {
-  width: 100%;
-  padding: 0.6em;
-  margin: 0.5em 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* 产品卡片样式 */
+/* ====================== 商品卡片 ====================== */
 .product-card {
-  border: 1px solid #ddd;
   padding: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
   border-radius: 8px;
   text-align: center;
-  background: #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .product-card img {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
   margin-bottom: 0.5rem;
+  border-radius: 4px;
 }
 
 .product-card button {
   margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
   background-color: #2196F3;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
   cursor: pointer;
-  border-radius: 4px;
+  transition: background-color 0.3s;
 }
 
 .product-card button:hover {
   background-color: #1976D2;
 }
 
-/* 交易记录样式 */
+/* ====================== 表单控件 ====================== */
+form input[type="text"],
+form input[type="file"],
+form textarea {
+  width: 100%;
+  margin: 0.5em 0;
+  padding: 0.6em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* ====================== 交易记录 ====================== */
 .transaction-item {
-  background: #fff;
   padding: 1rem;
   margin: 0.5rem 0;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -130,7 +133,7 @@ form textarea {
   color: #666;
 }
 
-/* 动画效果 */
+/* ====================== 动画效果 ====================== */
 .animated {
   opacity: 0;
   transform: translateY(20px);
@@ -143,4 +146,30 @@ form textarea {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ====================== 新增优化样式 ====================== */
+/* 交易哈希链接样式 */
+.transaction-item a {
+  color: #2196F3;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.transaction-item a:hover {
+  text-decoration: underline;
+}
+
+/* 加载动画 */
+.loading {
+  padding: 1rem;
+  color: #666;
+  text-align: center;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }

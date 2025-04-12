@@ -39,7 +39,8 @@ contract Marketplace is ERC721Enumerable, Ownable, ReentrancyGuard {
     event ProductMinted(uint256 indexed tokenId, address owner);
     event ProductListed(uint256 indexed tokenId, uint256 price);
     event ProductDelisted(uint256 indexed tokenId);
-    event ProductSold(uint256 indexed tokenId, address buyer, uint256 price);
+    // 修改 ProductSold 事件定义，增加 seller 参数
+    event ProductSold(uint256 indexed tokenId, address indexed seller, address indexed buyer, uint256 price);
 
 
     /**
@@ -124,7 +125,7 @@ contract Marketplace is ERC721Enumerable, Ownable, ReentrancyGuard {
             payable(msg.sender).transfer(msg.value - price);
         }
 
-        emit ProductSold(tokenId, msg.sender, price);
+        emit ProductSold(tokenId, seller, msg.sender, price); // 增加 seller 参数
     }
 
     // 添加totalSupply方法
