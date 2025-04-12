@@ -1057,7 +1057,7 @@ async function loadUserItems() {
 }
 
 
-// 交易历史（示例）
+// 交易历史
 async function loadTransactionHistory() {
 	try {
 	  // 获取购买记录（作为买家）
@@ -1069,24 +1069,39 @@ async function loadTransactionHistory() {
 	  const allSales = await marketplaceContract.queryFilter(salesFilter);
 	  const mySales = allSales.filter(event => event.args.seller === walletAddress);
   
-	  // 渲染购买记录
+	  // 新增：加载区块时间戳
+	  const loadBlockTimestamps = async (events) => {
+		return Promise.all(
+		  events.map(async (event) => {
+			const block = await provider.getBlock(event.blockNumber); // 查询区块信息
+			return {
+			  ...event,
+			  timestamp: block.timestamp * 1000 // 转换为毫秒
+			};
+		  })
+		);
+	  };
+  
+	  // 渲染购买记录（添加时间戳）
+	  const purchasesWithTime = await loadBlockTimestamps(purchases);
 	  const purchasesList = document.getElementById('myPurchasesList');
-	  purchasesList.innerHTML = purchases.map(event => `
+	  purchasesList.innerHTML = purchasesWithTime.map(event => `
 		<div class="transaction-item">
 		  <p>商品 ID: ${event.args.tokenId}</p>
 		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
-		  <p>时间: ${new Date(event.blockNumber * 1000).toLocaleString()}</p>
+		  <p>时间: ${new Date(event.timestamp).toLocaleString()}</p> <!-- 使用正确的时间戳 -->
 		</div>
 	  `).join('') || "<p>暂无购买记录</p>";
   
-	  // 渲染出售记录
+	  // 渲染出售记录（同上）
+	  const salesWithTime = await loadBlockTimestamps(mySales);
 	  const salesList = document.getElementById('mySalesList');
-	  salesList.innerHTML = mySales.map(event => `
+	  salesList.innerHTML = salesWithTime.map(event => `
 		<div class="transaction-item">
 		  <p>商品 ID: ${event.args.tokenId}</p>
 		  <p>买家: ${event.args.buyer}</p>
 		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
-		  <p>时间: ${new Date(event.blockNumber * 1000).toLocaleString()}</p>
+		  <p>时间: ${new Date(event.timestamp).toLocaleString()}</p> <!-- 使用正确的时间戳 -->
 		</div>
 	  `).join('') || "<p>暂无出售记录</p>";
 	  
@@ -1094,6 +1109,45 @@ async function loadTransactionHistory() {
 	  handleError("加载交易记录失败", error);
 	}
   }
+
+
+// // 交易历史
+// async function loadTransactionHistory() {
+// 	try {
+// 	  // 获取购买记录（作为买家）
+// 	  const purchaseFilter = marketplaceContract.filters.ProductSold(null, walletAddress);
+// 	  const purchases = await marketplaceContract.queryFilter(purchaseFilter);
+	  
+// 	  // 获取出售记录（作为卖家）
+// 	  const salesFilter = marketplaceContract.filters.ProductSold();
+// 	  const allSales = await marketplaceContract.queryFilter(salesFilter);
+// 	  const mySales = allSales.filter(event => event.args.seller === walletAddress);
+  
+// 	  // 渲染购买记录
+// 	  const purchasesList = document.getElementById('myPurchasesList');
+// 	  purchasesList.innerHTML = purchases.map(event => `
+// 		<div class="transaction-item">
+// 		  <p>商品 ID: ${event.args.tokenId}</p>
+// 		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
+// 		  <p>时间: ${new Date(event.blockNumber * 1000).toLocaleString()}</p>
+// 		</div>
+// 	  `).join('') || "<p>暂无购买记录</p>";
+  
+// 	  // 渲染出售记录
+// 	  const salesList = document.getElementById('mySalesList');
+// 	  salesList.innerHTML = mySales.map(event => `
+// 		<div class="transaction-item">
+// 		  <p>商品 ID: ${event.args.tokenId}</p>
+// 		  <p>买家: ${event.args.buyer}</p>
+// 		  <p>价格: ${ethers.formatEther(event.args.price)} ETH</p>
+// 		  <p>时间: ${new Date(event.blockNumber * 1000).toLocaleString()}</p>
+// 		</div>
+// 	  `).join('') || "<p>暂无出售记录</p>";
+	  
+// 	} catch (error) {
+// 	  handleError("加载交易记录失败", error);
+// 	}
+//   }
 
 
 
